@@ -1,5 +1,5 @@
 import socket  # Import socket module
-
+from _thread import *
 from Tools.Scripts.treesync import raw_input
 
 s = socket.socket()
