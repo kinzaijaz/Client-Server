@@ -23,7 +23,7 @@ except socket.error as msg:
 print ('Socket bind complete')
 
 # Start listening on socket
-s.listen(10)
+s.listen(2)
 print('Socket now listening')
 
 # Function for handling connections. This will be used to create threads
