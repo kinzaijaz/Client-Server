@@ -21,53 +21,72 @@ except socket.error as msg:
     sys.exit()
 
 print ('Socket bind complete')
-
 # Start listening on socket
-s.listen(20)
+s.listen(10)
 print('Socket now listening')
-# Function for handling connections. This will be used to create threads
-def clientthread(i):
-    # infinite loop so that function do not terminate and thread do not end.
-    while True:
-        # Receiving from client
-        data = (conn.recv(1024)).decode()
-        if not data:
-            break
-        print ('Receiving from ' + str(client[i]) + ': '+ str(data))
-        if conn==arr[0]['conn']:
-            print('Sending to ' + str(client[i]))
-            data = str(client[i]) + ': ' + str(data)
-            data = data.encode()
-            conn.sendall(data)
-        elif conn==arr[1]['conn']:
-            print('Sending to ' + str(client[i]))
-            data = str(client[i]) + ': ' + str(data)
-            data = data.encode()
-            conn.sendall(data)
-    # came out of loop
-    conn[i].close()
 
-def onlineusers(arr):
-    for i in range(0, len(arr)):
-        d = str(arr[i]['name'] + "is online")
-        d = d.encode()
-        arr[i]['conn'].send(d)
-
-client=['Client1','Client2','Client3','Client4','Client5','Client6','Client7','Client8','Client9','Client10','Client11','Client12','Client13','Client14','Client15','Client16','Client17','Client18','Client19','Client20']
-dict={}
 arr=[]
+# Function for handling connections. This will be used to create threads
+def clientthread(conn):
+    # infinite loop so that function do not terminate and thread do not end.
+    conn.send(str('Enter name you want to chat with: ').encode())
+    while True:
+        datacome=(conn.recv(1024)).decode()
+        if datacome == "Q" or datacome == "q":
+            a = 0
+            for a in range(len(arr)):
+                if conn == arr[a]['conn']:
+                    arr[a]['conn'].send(str('user is now offline').encode())
+                    break
+        else:
+            receiver = None
+            sender = " "
+            for a in range(len(arr)):
+                if (datacome == arr[a]['name']):
+                    receiver = arr[a]
+                    break
+            for a in range(len(arr)):
+                if (conn == arr[a]['conn']):
+                    sender = arr[a]['name']
+            data = (conn.recv(1024)).decode()
+            if receiver != None:
+                receiver['conn'].send(str(sender+ ': ' + data).encode())
+    conn.close()
 
-for i in range (30):
+def newConnectedUsers(dict):
+    j = len(arr)
+    while j:
+        j= j-1
+        data2 = str(dict['name'] + ' is now online').encode()
+        arr[j]['conn'].send(data2)
+    return
+
+i=0
+while 1:
     # wait to accept a connection - blocking call
     conn, addr = s.accept()
-    dict['conn']=conn
-    dict['name']=client[i]
-    dict['address']=addr[1]
-    arr.append(dict)
-    print('Connected with ' + addr[0] + ':' + str(addr[1])+ ':' + client[i])
-    onlineusers(arr)
-    # start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-    start_new_thread(clientthread, (i,))
+    # shows already Connected users with server to newly connected
+    k = len(arr)
+    while k:
+        k = k - 1
+        data1 = str(arr[k]['name'] + ' is online\n').encode()
+        conn.send(data1)
 
+    dict={}
+    dict['conn']=conn
+    dict['address']=addr
+
+    # ask new connected user name
+    conn.send(str('Enter you name: ').encode())
+    dict['name']= (conn.recv(1024)).decode()
+
+    # shows new connected user to all other users
+    newConnectedUsers(dict)
+    arr.append(dict)
+
+    print('Connected with ' + addr[0] + ':' + str(addr[1]))
+    # start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+    start_new_thread(clientthread, (conn,))
+    i = i+1
 s.close()
 
