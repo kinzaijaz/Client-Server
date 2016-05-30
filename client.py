@@ -17,8 +17,6 @@ def sends():
 
 s.connect((host, port))
 start_new_thread(receive, (None,))
-d = input('Start chatting with: ')
-s.send(d.encode())
 sends()
 s.close  # Close the socket when done
 
