@@ -37,6 +37,7 @@ def clientthread(conn):
             for a in range(len(arr)):
                 if conn == arr[a]['conn']:
                     arr[a]['conn'].send(str('user is now offline').encode())
+                    arr[a]['conn'].close()
                     break
         else:
             receiver = None
